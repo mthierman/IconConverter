@@ -1,0 +1,8 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 100
+SortIncludes: Never
+AlignAfterOpenBracket: Align
+BreakBeforeBraces: Allman
+BreakInheritanceList: AfterComma
+PointerAlignment: Left
