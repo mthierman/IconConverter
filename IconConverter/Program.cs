@@ -48,7 +48,7 @@ binaryWriter.Write((byte)0);
 binaryWriter.Write((byte)0);
 // 2 Number of colors in the color palette. Should be 0 if no palette.
 binaryWriter.Write((byte)0);
-// 3 Reserved.Should be 0.
+// 3 Reserved. Should be 0.
 binaryWriter.Write((byte)0);
 // 4-5
 // .ICO: Color planes (0 or 1).

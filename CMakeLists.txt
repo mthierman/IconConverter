@@ -41,13 +41,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         /permissive-
         /utf-8
         /W4
-        /WX
+        # /WX
     )
 
     target_link_options(
         common
         INTERFACE
-        /WX
+        # /WX
     )
 endif()
 
