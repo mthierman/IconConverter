@@ -182,7 +182,10 @@ auto get_bitmap(Gdiplus::Bitmap& bitmap, const int& size, CLSID* pClsid) -> std:
     if (ptr == nullptr)
         return {};
 
-    std::vector<char> vec(static_cast<char*>(ptr), (static_cast<char*>(ptr) + bufsize));
+    std::vector<char> vec;
+    vec.resize(bufsize);
+
+    std::copy(static_cast<char*>(ptr), (static_cast<char*>(ptr) + bufsize), vec.begin());
 
     ::GlobalUnlock(hGlobal);
     istream->Release();
