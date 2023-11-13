@@ -131,8 +131,6 @@ auto get_encoder_clsid(const std::wstring& format, CLSID* pClsid) -> bool
 
 auto get_bitmap(Gdiplus::Bitmap& bitmap, const int& size, CLSID* pClsid) -> std::vector<char>
 {
-    std::vector<char> vec;
-
     auto newBitmap{std::make_unique<Gdiplus::Bitmap>(size, size)};
     Gdiplus::Image* img = newBitmap.get();
     Gdiplus::Graphics g(img);
@@ -150,22 +148,21 @@ auto get_bitmap(Gdiplus::Bitmap& bitmap, const int& size, CLSID* pClsid) -> std:
 
     IStream* istream{nullptr};
     if (FAILED(::CreateStreamOnHGlobal(nullptr, TRUE, &istream)))
-        return vec;
+        return std::vector<char>{};
 
     img->Save(istream, pClsid);
 
     HGLOBAL hGlobal{0};
     if (FAILED(::GetHGlobalFromStream(istream, &hGlobal)))
-        return vec;
+        return std::vector<char>{};
 
     auto bufsize{::GlobalSize(hGlobal)};
-    vec.resize(bufsize);
 
     auto* ptr{::GlobalLock(hGlobal)};
     if (ptr == nullptr)
-        return vec;
+        return std::vector<char>{};
 
-    memcpy(vec.data(), ptr, vec.size());
+    std::vector<char> vec(static_cast<char*>(ptr), static_cast<char*>(ptr) + bufsize);
 
     ::GlobalUnlock(hGlobal);
     istream->Release();
