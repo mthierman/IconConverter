@@ -16,13 +16,13 @@
 auto get_encoder_clsid(const std::wstring& format, CLSID* pClsid) -> bool;
 auto get_bitmap(Gdiplus::Bitmap& bitmap, const int& size, CLSID* pClsid) -> std::vector<char>;
 auto write_header(std::ofstream& outputStream, uint16_t count) -> void;
-auto write_entry(std::ofstream& outputStream, std::vector<char>& bitmap, uint8_t width,
-                 uint8_t height, uint32_t offset) -> void;
+auto write_entry(std::ofstream& outputStream, std::vector<char>& bitmap, uint8_t size,
+                 uint32_t offset) -> void;
 auto write_bitmap(std::ofstream& outputStream, std::vector<char>& bitmap) -> void;
 
 auto main() -> int
 {
-    ULONG_PTR gdiplusToken;
+    ULONG_PTR gdiplusToken{0};
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 
     if (Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, nullptr) !=
@@ -35,68 +35,88 @@ auto main() -> int
     {
         std::filesystem::path inputFile{argv[1]};
         std::filesystem::path outputFile{argv[2]};
+        std::filesystem::path inputCanonical;
 
         if (!std::filesystem::exists(inputFile))
             return 0;
 
-        std::filesystem::path inputCanonical{std::filesystem::canonical(inputFile)};
+        try
+        {
+            inputCanonical = std::filesystem::canonical(inputFile);
+        }
+        catch (std::filesystem::filesystem_error& /*e*/)
+        {
+            return 0;
+        }
+
+        if (inputCanonical.empty())
+            return 0;
 
         CLSID pngClsid;
 
         if (!get_encoder_clsid(L"image/png", &pngClsid))
             return 0;
 
-        Gdiplus::Bitmap bitmap(inputCanonical.wstring().c_str());
+        Gdiplus::Bitmap inputBitmap(inputCanonical.wstring().c_str());
 
-        auto bitmap256{get_bitmap(bitmap, 256, &pngClsid)};
-        auto bitmap96{get_bitmap(bitmap, 96, &pngClsid)};
-        auto bitmap64{get_bitmap(bitmap, 64, &pngClsid)};
-        auto bitmap48{get_bitmap(bitmap, 48, &pngClsid)};
-        auto bitmap32{get_bitmap(bitmap, 32, &pngClsid)};
-        auto bitmap24{get_bitmap(bitmap, 24, &pngClsid)};
-        auto bitmap16{get_bitmap(bitmap, 16, &pngClsid)};
+        std::vector<std::vector<char>> bitmaps;
+        std::vector<int> bitmapSizes{256, 96, 64, 48, 32, 24, 16};
+
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[0], &pngClsid));
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[1], &pngClsid));
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[2], &pngClsid));
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[3], &pngClsid));
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[4], &pngClsid));
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[5], &pngClsid));
+        bitmaps.push_back(get_bitmap(inputBitmap, bitmapSizes[6], &pngClsid));
 
         std::vector<uint32_t> sizes;
-        sizes.push_back(static_cast<uint32_t>(bitmap256.size()));
-        sizes.push_back(static_cast<uint32_t>(bitmap96.size()));
-        sizes.push_back(static_cast<uint32_t>(bitmap64.size()));
-        sizes.push_back(static_cast<uint32_t>(bitmap48.size()));
-        sizes.push_back(static_cast<uint32_t>(bitmap32.size()));
-        sizes.push_back(static_cast<uint32_t>(bitmap24.size()));
-        sizes.push_back(static_cast<uint32_t>(bitmap16.size()));
+        sizes.reserve(bitmaps.size());
+        for (auto const& bitmap : bitmaps)
+        {
+            sizes.push_back(static_cast<uint32_t>(bitmap.size()));
+        }
 
         std::ofstream outputStream;
         uint16_t count{7};
         uint32_t offset{6 + (16 * static_cast<uint32_t>(count))};
 
-        std::vector<uint32_t> pos;
-        pos.push_back(offset);
-        pos.push_back(offset + sizes[0]);
-        pos.push_back(offset + sizes[0] + sizes[1]);
-        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2]);
-        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3]);
-        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4]);
-        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4] + sizes[5]);
+        std::vector<uint32_t> positions;
+        positions.push_back(offset);
+        positions.push_back(offset + sizes[0]);
+        positions.push_back(offset + sizes[0] + sizes[1]);
+        positions.push_back(offset + sizes[0] + sizes[1] + sizes[2]);
+        positions.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3]);
+        positions.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4]);
+        positions.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4] +
+                            sizes[5]);
+
+        std::vector<uint8_t> dimensions;
+        dimensions.reserve(sizes.size());
+        for (const auto& size : sizes)
+        {
+            dimensions.push_back(static_cast<uint8_t>(size));
+        }
 
         outputStream.open(outputFile, std::ios::binary);
 
         write_header(outputStream, count);
 
-        write_entry(outputStream, bitmap256, 0, 0, pos[0]);
-        write_entry(outputStream, bitmap96, 96, 96, pos[1]);
-        write_entry(outputStream, bitmap64, 64, 64, pos[2]);
-        write_entry(outputStream, bitmap48, 48, 48, pos[3]);
-        write_entry(outputStream, bitmap32, 32, 32, pos[4]);
-        write_entry(outputStream, bitmap24, 24, 24, pos[5]);
-        write_entry(outputStream, bitmap16, 16, 16, pos[6]);
+        write_entry(outputStream, bitmaps[0], 0, positions[0]);
+        write_entry(outputStream, bitmaps[1], dimensions[1], positions[1]);
+        write_entry(outputStream, bitmaps[2], dimensions[2], positions[2]);
+        write_entry(outputStream, bitmaps[3], dimensions[3], positions[3]);
+        write_entry(outputStream, bitmaps[4], dimensions[4], positions[4]);
+        write_entry(outputStream, bitmaps[5], dimensions[5], positions[5]);
+        write_entry(outputStream, bitmaps[6], dimensions[6], positions[6]);
 
-        write_bitmap(outputStream, bitmap256);
-        write_bitmap(outputStream, bitmap96);
-        write_bitmap(outputStream, bitmap64);
-        write_bitmap(outputStream, bitmap48);
-        write_bitmap(outputStream, bitmap32);
-        write_bitmap(outputStream, bitmap24);
-        write_bitmap(outputStream, bitmap16);
+        write_bitmap(outputStream, bitmaps[0]);
+        write_bitmap(outputStream, bitmaps[1]);
+        write_bitmap(outputStream, bitmaps[2]);
+        write_bitmap(outputStream, bitmaps[3]);
+        write_bitmap(outputStream, bitmaps[4]);
+        write_bitmap(outputStream, bitmaps[5]);
+        write_bitmap(outputStream, bitmaps[6]);
     }
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
@@ -148,21 +168,21 @@ auto get_bitmap(Gdiplus::Bitmap& bitmap, const int& size, CLSID* pClsid) -> std:
 
     IStream* istream{nullptr};
     if (FAILED(::CreateStreamOnHGlobal(nullptr, TRUE, &istream)))
-        return std::vector<char>{};
+        return {};
 
     img->Save(istream, pClsid);
 
-    HGLOBAL hGlobal{0};
+    HGLOBAL hGlobal{nullptr};
     if (FAILED(::GetHGlobalFromStream(istream, &hGlobal)))
-        return std::vector<char>{};
+        return {};
 
     auto bufsize{::GlobalSize(hGlobal)};
 
     auto* ptr{::GlobalLock(hGlobal)};
     if (ptr == nullptr)
-        return std::vector<char>{};
+        return {};
 
-    std::vector<char> vec(static_cast<char*>(ptr), static_cast<char*>(ptr) + bufsize);
+    std::vector<char> vec(static_cast<char*>(ptr), (static_cast<char*>(ptr) + bufsize));
 
     ::GlobalUnlock(hGlobal);
     istream->Release();
@@ -184,20 +204,20 @@ auto write_header(std::ofstream& outputStream, uint16_t count) -> void
     outputStream.write(reinterpret_cast<char*>(&count), sizeof(count));
 }
 
-auto write_entry(std::ofstream& outputStream, std::vector<char>& bitmap, uint8_t width,
-                 uint8_t height, uint32_t offset) -> void
+auto write_entry(std::ofstream& outputStream, std::vector<char>& bitmap, uint8_t size,
+                 uint32_t offset) -> void
 {
     uint8_t reserved{0};
     uint8_t colors{0};
     uint16_t planes{1};
     uint16_t bits{32};
-    auto size{static_cast<uint32_t>(bitmap.size())};
+    auto bitmapSize{static_cast<uint32_t>(bitmap.size())};
 
     // Entry
     // 0 Image width in pixels. Range is 0-255. 0 means 256 pixels.
-    outputStream.write(reinterpret_cast<char*>(&width), sizeof(width));
+    outputStream.write(reinterpret_cast<char*>(&size), sizeof(size));
     // 1 Image height in pixels. Range is 0-255. 0 means 256 pixels.
-    outputStream.write(reinterpret_cast<char*>(&height), sizeof(height));
+    outputStream.write(reinterpret_cast<char*>(&size), sizeof(size));
     // 2 Number of colors in the color palette. Should be 0 if no palette.
     outputStream.write(reinterpret_cast<char*>(&colors), sizeof(colors));
     // 3 Reserved. Should be 0.
@@ -211,7 +231,7 @@ auto write_entry(std::ofstream& outputStream, std::vector<char>& bitmap, uint8_t
     // .CUR: Vertical coordinates of the hotspot in pixels from the top.
     outputStream.write(reinterpret_cast<char*>(&bits), sizeof(bits));
     // 8-11 Size of the image's data in bytes
-    outputStream.write(reinterpret_cast<char*>(&size), sizeof(size));
+    outputStream.write(reinterpret_cast<char*>(&bitmapSize), sizeof(bitmapSize));
     // 12-15 Offset of image data from the beginning of the file.
     outputStream.write(reinterpret_cast<char*>(&offset), sizeof(offset));
 }

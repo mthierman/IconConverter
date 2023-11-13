@@ -52,14 +52,14 @@ auto widen(std::string in) -> std::wstring
 auto get_argv() -> std::vector<std::string>
 {
     int argc{0};
-    std::vector<std::string> argv;
-
     auto wideArgs{::CommandLineToArgvW(::GetCommandLineW(), &argc)};
 
+    std::vector<std::string> argv;
+    argv.reserve(sizeof(wideArgs));
     for (int i = 0; i < argc; i++)
     {
         auto arg{narrow(wideArgs[i])};
-        argv.emplace_back(arg);
+        argv.push_back(arg);
     }
 
     ::LocalFree(wideArgs);
