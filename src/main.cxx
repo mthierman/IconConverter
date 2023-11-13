@@ -12,7 +12,7 @@
 #include <vector>
 
 bool get_encoder_clsid(const WCHAR*, CLSID*);
-std::vector<char> get_bitmap(const std::filesystem::path, const int, const int, CLSID*);
+std::vector<char> get_bitmap(Gdiplus::Bitmap&, const int, const int, const CLSID*);
 void write_header(std::ofstream&, uint16_t);
 void write_entry(std::ofstream&, std::vector<char>, uint8_t, uint8_t, uint32_t);
 void write_bitmap(std::ofstream&, std::vector<char>);
@@ -48,12 +48,11 @@ bool get_encoder_clsid(const WCHAR* format, CLSID* pClsid)
     return false;
 }
 
-std::vector<char> get_bitmap(const std::filesystem::path file, const int width, const int height,
-                             CLSID* pClsid)
+std::vector<char> get_bitmap(Gdiplus::Bitmap& bitmap, const int width, const int height,
+                             const CLSID* pClsid)
 {
     std::vector<char> vec;
 
-    Gdiplus::Bitmap bitmap(file.wstring().c_str());
     Gdiplus::Image* img = new Gdiplus::Bitmap(width, height);
     Gdiplus::Graphics g(img);
 
@@ -170,23 +169,19 @@ int main(int argc, char** argv)
         std::filesystem::path inputCanonical{std::filesystem::canonical(inputFile)};
 
         CLSID pngClsid;
-        CLSID bmpClsid;
 
         if (!get_encoder_clsid(L"image/png", &pngClsid))
             return 0;
 
-        if (!get_encoder_clsid(L"image/bmp", &bmpClsid))
-            return 0;
+        Gdiplus::Bitmap bitmap(inputCanonical.wstring().c_str());
 
-        // 16px 20px 24px 30px 32px 36px 40px 48px 60px 64px 72px 80px 96px 256px
-        // std::vector<std::vector<char>> bitmaps;
-        auto bitmap256{get_bitmap(inputCanonical, 256, 256, &pngClsid)};
-        auto bitmap96{get_bitmap(inputCanonical, 96, 96, &pngClsid)};
-        auto bitmap64{get_bitmap(inputCanonical, 64, 64, &pngClsid)};
-        auto bitmap48{get_bitmap(inputCanonical, 48, 48, &pngClsid)};
-        auto bitmap32{get_bitmap(inputCanonical, 32, 32, &pngClsid)};
-        auto bitmap24{get_bitmap(inputCanonical, 24, 24, &pngClsid)};
-        auto bitmap16{get_bitmap(inputCanonical, 16, 16, &pngClsid)};
+        auto bitmap256{get_bitmap(bitmap, 256, 256, &pngClsid)};
+        auto bitmap96{get_bitmap(bitmap, 96, 96, &pngClsid)};
+        auto bitmap64{get_bitmap(bitmap, 64, 64, &pngClsid)};
+        auto bitmap48{get_bitmap(bitmap, 48, 48, &pngClsid)};
+        auto bitmap32{get_bitmap(bitmap, 32, 32, &pngClsid)};
+        auto bitmap24{get_bitmap(bitmap, 24, 24, &pngClsid)};
+        auto bitmap16{get_bitmap(bitmap, 16, 16, &pngClsid)};
 
         std::vector<uint32_t> sizes;
         sizes.push_back(static_cast<uint32_t>(bitmap256.size()));
@@ -199,22 +194,16 @@ int main(int argc, char** argv)
 
         std::ofstream outputStream;
         uint16_t count{7};
-        uint32_t headerOffset{6};
-        uint32_t entryOffset{16};
-        uint32_t countOffset{static_cast<uint32_t>(count)};
+        uint32_t offset{6 + (16 * static_cast<uint32_t>(count))};
 
         std::vector<uint32_t> pos;
-        pos.push_back((headerOffset + (entryOffset * countOffset)));
-        pos.push_back((headerOffset + (entryOffset * countOffset)) + sizes[0]);
-        pos.push_back((headerOffset + (entryOffset * countOffset)) + sizes[0] + sizes[1]);
-        pos.push_back((headerOffset + (entryOffset * countOffset)) + sizes[0] + sizes[1] +
-                      sizes[2]);
-        pos.push_back((headerOffset + (entryOffset * countOffset)) + sizes[0] + sizes[1] +
-                      sizes[2] + sizes[3]);
-        pos.push_back((headerOffset + (entryOffset * countOffset)) + sizes[0] + sizes[1] +
-                      sizes[2] + sizes[3] + sizes[4]);
-        pos.push_back((headerOffset + (entryOffset * countOffset)) + sizes[0] + sizes[1] +
-                      sizes[2] + sizes[3] + sizes[4] + sizes[5]);
+        pos.push_back(offset);
+        pos.push_back(offset + sizes[0]);
+        pos.push_back(offset + sizes[0] + sizes[1]);
+        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2]);
+        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3]);
+        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4]);
+        pos.push_back(offset + sizes[0] + sizes[1] + sizes[2] + sizes[3] + sizes[4] + sizes[5]);
 
         outputStream.open(outputFile, std::ios::binary);
 
