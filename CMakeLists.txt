@@ -23,6 +23,12 @@ target_compile_definitions(
     APP_VERSION="${APP_VERSION}"
 )
 
+target_link_libraries(
+    common
+    INTERFACE
+    gdiplus.lib
+)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(
         common
@@ -35,13 +41,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
         /permissive-
         /utf-8
         /W4
-        # /WX
+        /WX
     )
 
     target_link_options(
         common
         INTERFACE
-        # /WX
+        /WX
     )
 endif()
 

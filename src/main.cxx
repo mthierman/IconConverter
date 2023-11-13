@@ -10,8 +10,6 @@
 #include <vector>
 #include <memory>
 
-#pragma comment(lib, "gdiplus.lib")
-
 bool GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
     UINT num{0};
