@@ -33,21 +33,21 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(
         common
         INTERFACE
-        /diagnostics:caret
-        /EHsc
-        /Zc:__cplusplus
         /await:strict
         /bigobj
+        /diagnostics:caret
+        /EHsc
         /permissive-
         /utf-8
         /W4
-        # /WX
+        /WX
+        /Zc:__cplusplus
     )
 
     target_link_options(
         common
         INTERFACE
-        # /WX
+        /WX
     )
 endif()
 
