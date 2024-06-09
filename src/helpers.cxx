@@ -11,8 +11,9 @@ namespace helpers
 {
 auto getPaths(int argc, char* argv[]) -> std::pair<fs::path, fs::path>
 {
-    std::pair<fs::path, fs::path> paths;
     std::vector<std::string> args(argv + 1, argc + argv);
+
+    std::pair<fs::path, fs::path> paths;
 
     try
     {

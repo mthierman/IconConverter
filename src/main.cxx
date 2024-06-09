@@ -43,9 +43,9 @@ auto main(int argc, char* argv[]) -> int
     std::vector<std::vector<char>> bitmaps;
 
     std::vector<int> bitmapSizes{256, 128, 96, 80, 72, 64, 60, 48, 40, 36, 32, 30, 24, 20, 16};
-    for (auto size : bitmapSizes)
+    for (auto bitmapSize : bitmapSizes)
     {
-        bitmaps.push_back(helpers::getBitmap(inputFileCanonical, size));
+        bitmaps.push_back(helpers::getBitmap(inputFileCanonical, bitmapSize));
     }
 
     std::vector<uint32_t> sizes;
