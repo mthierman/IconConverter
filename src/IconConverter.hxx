@@ -1,18 +1,8 @@
 #pragma once
 
-#include <Windows.h>
-#include <wincodec.h>
-
-#include <wil/com.h>
-#include <wil/resource.h>
-
-#include <algorithm>
 #include <cstdint>
-#include <iostream>
 #include <filesystem>
 #include <fstream>
-#include <memory>
-#include <utility>
 #include <vector>
 
 auto get_bitmap(const std::filesystem::path& inputCanonical, const int& size) -> std::vector<char>;

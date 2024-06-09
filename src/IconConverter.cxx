@@ -1,5 +1,20 @@
 #include "IconConverter.hxx"
 
+#include <Windows.h>
+#include <wincodec.h>
+
+#include <wil/com.h>
+#include <wil/resource.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <utility>
+#include <vector>
+
 auto main(int argc, char* argv[]) -> int
 {
     std::vector<std::string> args;
@@ -17,7 +32,8 @@ auto main(int argc, char* argv[]) -> int
             std::filesystem::path outputFile{argv[2]};
             std::filesystem::path inputCanonical;
 
-            if (!std::filesystem::exists(inputFile)) return 0;
+            if (!std::filesystem::exists(inputFile))
+                return 0;
 
             try
             {
@@ -28,7 +44,8 @@ auto main(int argc, char* argv[]) -> int
                 return 0;
             }
 
-            if (inputCanonical.empty()) return 0;
+            if (inputCanonical.empty())
+                return 0;
 
             std::vector<std::vector<char>> bitmaps;
             std::vector<int> bitmapSizes{256, 128, 96, 80, 72, 64, 60, 48,
@@ -108,14 +125,17 @@ auto get_bitmap(const std::filesystem::path& inputCanonical, const int& size) ->
                                                    &pDecoder)))
         return {};
 
-    if (FAILED(pDecoder->GetFrame(0, &pFrameDecode))) return {};
+    if (FAILED(pDecoder->GetFrame(0, &pFrameDecode)))
+        return {};
 
     wil::unique_hglobal hglobal;
     wil::com_ptr<IStream> istream;
 
-    if (FAILED(::CreateStreamOnHGlobal(hglobal.get(), TRUE, &istream))) return {};
+    if (FAILED(::CreateStreamOnHGlobal(hglobal.get(), TRUE, &istream)))
+        return {};
 
-    if (FAILED(pFactory->CreateBitmapScaler(&pScaler))) return {};
+    if (FAILED(pFactory->CreateBitmapScaler(&pScaler)))
+        return {};
     if (FAILED(pScaler->Initialize(pFrameDecode.get(), size, size,
                                    WICBitmapInterpolationModeHighQualityCubic)))
         return {};
@@ -125,25 +145,37 @@ auto get_bitmap(const std::filesystem::path& inputCanonical, const int& size) ->
     UINT bufsize{size * size * bytesPerPixel};
 
     std::vector<BYTE> scaledBuffer(bufsize);
-    if (FAILED(pScaler->CopyPixels(NULL, stride, bufsize, scaledBuffer.data()))) return {};
+    if (FAILED(pScaler->CopyPixels(NULL, stride, bufsize, scaledBuffer.data())))
+        return {};
 
-    if (FAILED(pFactory->CreateEncoder(GUID_ContainerFormatPng, NULL, &pEncoder))) return {};
-    if (FAILED(pEncoder->Initialize(istream.get(), WICBitmapEncoderNoCache))) return {};
-    if (FAILED(pEncoder->CreateNewFrame(&pFrameEncode, &pPropertyBag))) return {};
+    if (FAILED(pFactory->CreateEncoder(GUID_ContainerFormatPng, NULL, &pEncoder)))
+        return {};
+    if (FAILED(pEncoder->Initialize(istream.get(), WICBitmapEncoderNoCache)))
+        return {};
+    if (FAILED(pEncoder->CreateNewFrame(&pFrameEncode, &pPropertyBag)))
+        return {};
 
-    if (FAILED(pFrameEncode->Initialize(pPropertyBag.get()))) return {};
-    if (FAILED(pFrameEncode->SetSize(size, size))) return {};
+    if (FAILED(pFrameEncode->Initialize(pPropertyBag.get())))
+        return {};
+    if (FAILED(pFrameEncode->SetSize(size, size)))
+        return {};
     WICPixelFormatGUID pixelFormatDestination{GUID_WICPixelFormat32bppBGRA};
-    if (FAILED(pFrameEncode->SetPixelFormat(&pixelFormatDestination))) return {};
-    if (FAILED(pFrameEncode->WritePixels(size, stride, bufsize, scaledBuffer.data()))) return {};
+    if (FAILED(pFrameEncode->SetPixelFormat(&pixelFormatDestination)))
+        return {};
+    if (FAILED(pFrameEncode->WritePixels(size, stride, bufsize, scaledBuffer.data())))
+        return {};
 
-    if (FAILED(pFrameEncode->Commit())) return {};
-    if (FAILED(pEncoder->Commit())) return {};
+    if (FAILED(pFrameEncode->Commit()))
+        return {};
+    if (FAILED(pEncoder->Commit()))
+        return {};
 
-    if (FAILED(::GetHGlobalFromStream(istream.get(), &hglobal))) return {};
+    if (FAILED(::GetHGlobalFromStream(istream.get(), &hglobal)))
+        return {};
     auto vecBufsize{::GlobalSize(hglobal.get())};
     auto* ptr{::GlobalLock(hglobal.get())};
-    if (ptr == nullptr) return {};
+    if (ptr == nullptr)
+        return {};
 
     std::vector<char> vec;
     vec.resize(vecBufsize);
