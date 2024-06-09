@@ -1,0 +1,3 @@
+[submodule "libs/cmake-modules"]
+	path = libs/cmake-modules
+	url = https://github.com/mthierman/cmake-modules.git

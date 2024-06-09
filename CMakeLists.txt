@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.28)
+
+project(IconConverter VERSION 0.0.1)
+
 add_executable(IconConverter)
 
 target_sources(
@@ -8,10 +12,10 @@ target_sources(
             HEADERS
             FILES
             "IconConverter/IconConverter.hxx"
-)
+    )
 
 target_link_libraries(
     IconConverter
     PRIVATE glow::glow
             glow::flags
-)
+    )
