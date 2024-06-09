@@ -14,5 +14,5 @@ project(IconConverter)
 # target_link_libraries( ${PROJECT_NAME} PRIVATE common::features common::definitions common::flags
 # wil::wil )
 
-# add_subdirectory(previous/gdiplus)
-add_subdirectory(previous/wic)
+add_subdirectory(previous/gdiplus)
+# add_subdirectory(previous/wic)

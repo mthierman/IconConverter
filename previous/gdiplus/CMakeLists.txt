@@ -32,7 +32,9 @@ target_link_libraries(
 
 target_compile_definitions(
     ${PROJECT_NAME}
-    PRIVATE GDIPVER=0x0110
+    PRIVATE NOMINMAX
+            WIN32_LEAN_AND_MEAN
+            GDIPVER=0x0110
             APP_NAME="${PROJECT_NAME}"
             APP_VERSION="${PROJECT_VERSION}"
     )

@@ -1,4 +1,6 @@
 #include <Windows.h>
+#include <shellapi.h>
+#include <ole2.h>
 #include <gdiplus.h>
 
 #include <algorithm>
