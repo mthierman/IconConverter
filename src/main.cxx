@@ -41,11 +41,12 @@ auto main(int argc, char* argv[]) -> int
     std::println("Input file canonical: {}", inputFileCanonical.string());
 
     std::vector<std::vector<char>> bitmaps;
+
     std::vector<int> bitmapSizes{256, 128, 96, 80, 72, 64, 60, 48, 40, 36, 32, 30, 24, 20, 16};
 
-    for (auto i = 0; i < bitmapSizes.size(); i++)
+    for (auto size : bitmapSizes)
     {
-        bitmaps.push_back(helpers::getBitmap(inputFileCanonical.wstring().c_str(), bitmapSizes[i]));
+        bitmaps.push_back(helpers::getBitmap(inputFileCanonical, size));
     }
 
     std::vector<uint32_t> sizes;
