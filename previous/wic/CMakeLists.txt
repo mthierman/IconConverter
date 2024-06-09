@@ -1,15 +1,6 @@
 project(IconConverter_WIC VERSION 0.0.1)
 
-list(
-    APPEND
-    CMAKE_MODULE_PATH
-    "${CMAKE_SOURCE_DIR}/libs/cmake-modules/"
-    )
-
-include(common)
 include(release_info)
-include(nuget)
-include(packages/wil)
 
 add_executable(${PROJECT_NAME})
 
