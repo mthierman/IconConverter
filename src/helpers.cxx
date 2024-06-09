@@ -118,4 +118,59 @@ auto getBitmap(fs::path inputFileCanonical, int size) -> std::vector<char>
 
     return vec;
 }
+
+auto writeHeader(std::ofstream& outputStream, uint16_t count) -> void
+{
+    uint16_t reserved{0};
+    uint16_t type{1};
+
+    // Header
+    // 0-1 Reserved, Must always be 0.
+    outputStream.write(reinterpret_cast<char*>(&reserved), sizeof(reserved));
+    // 2-3 Image type, 1 = icon (.ICO), 2 = cursor (.CUR).
+    outputStream.write(reinterpret_cast<char*>(&type), sizeof(type));
+    // 4-5 Number of images.
+    outputStream.write(reinterpret_cast<char*>(&count), sizeof(count));
+}
+
+auto writeEntry(std::ofstream& outputStream, std::vector<char>& bitmap, uint8_t size,
+                uint32_t offset) -> void
+{
+    uint8_t reserved{0};
+    uint8_t colors{0};
+    uint16_t planes{1};
+    uint16_t bits{32};
+    auto bitmapSize{static_cast<uint32_t>(bitmap.size())};
+
+    // Entry
+    // 0 Image width in pixels. Range is 0-255. 0 means 256 pixels.
+    outputStream.write(reinterpret_cast<char*>(&size), sizeof(size));
+    // 1 Image height in pixels. Range is 0-255. 0 means 256 pixels.
+    outputStream.write(reinterpret_cast<char*>(&size), sizeof(size));
+    // 2 Number of colors in the color palette. Should be 0 if no palette.
+    outputStream.write(reinterpret_cast<char*>(&colors), sizeof(colors));
+    // 3 Reserved. Should be 0.
+    outputStream.write(reinterpret_cast<char*>(&reserved), sizeof(reserved));
+    // 4-5
+    // .ICO: Color planes (0 or 1).
+    // .CUR: Horizontal coordinates of the hotspot in pixels from the left.
+    outputStream.write(reinterpret_cast<char*>(&planes), sizeof(planes));
+    // 6-7
+    // .ICO: Bits per pixel.
+    // .CUR: Vertical coordinates of the hotspot in pixels from the top.
+    outputStream.write(reinterpret_cast<char*>(&bits), sizeof(bits));
+    // 8-11 Size of the image's data in bytes
+    outputStream.write(reinterpret_cast<char*>(&bitmapSize), sizeof(bitmapSize));
+    // 12-15 Offset of image data from the beginning of the file.
+    outputStream.write(reinterpret_cast<char*>(&offset), sizeof(offset));
+}
+
+auto writeBitmap(std::ofstream& outputStream, std::vector<char>& bitmap) -> void
+{
+    // Write image data. PNG must be stored in its entirety, with file header & must
+    // be 32bpp ARGB format.
+    auto bitmapSize{static_cast<int64_t>(bitmap.size())};
+    auto charSize{static_cast<int64_t>(sizeof(char))};
+    outputStream.write(reinterpret_cast<char*>(bitmap.data()), (bitmapSize * charSize));
+}
 } // namespace helpers
