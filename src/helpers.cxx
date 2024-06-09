@@ -1,13 +1,15 @@
 #include "helpers.hxx"
 
+#include <print>
+
 namespace helpers
 {
-auto parse_app_name(std::vector<std::string> args) -> std::string
+auto getAppName(std::vector<std::string> args) -> std::string
 {
     return fs::path(args.at(0)).filename().replace_extension("").string();
 }
 
-auto parse_arg(std::vector<std::string> args, int position) -> std::expected<fs::path, std::string>
+auto checkArg(std::vector<std::string> args, int position) -> std::expected<fs::path, std::string>
 {
     args.erase(args.begin());
 
@@ -26,6 +28,24 @@ auto parse_arg(std::vector<std::string> args, int position) -> std::expected<fs:
             default:
                 return std::unexpected("");
         }
+    }
+}
+
+auto getPaths(std::vector<std::string> args) -> std::pair<fs::path, fs::path>
+{
+    auto inputFile{helpers::checkArg(args, 0)};
+    auto outputFile{helpers::checkArg(args, 1)};
+
+    if (!inputFile.has_value())
+    {
+        std::println("{}", inputFile.error());
+        std::exit(EXIT_FAILURE);
+    }
+
+    if (!outputFile.has_value())
+    {
+        std::println("{}", outputFile.error());
+        std::exit(EXIT_FAILURE);
     }
 }
 } // namespace helpers

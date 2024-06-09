@@ -6,21 +6,7 @@ auto main(int argc, char* argv[]) -> int
 {
     auto args{std::vector<std::string>(argv, argc + argv)};
 
-    auto appName{helpers::parse_app_name(args)};
-    auto inputFile{helpers::parse_arg(args, 0)};
-    auto outputFile{helpers::parse_arg(args, 1)};
-
-    if (!inputFile.has_value())
-    {
-        std::println("{}", inputFile.error());
-        return EXIT_FAILURE;
-    }
-
-    if (!outputFile.has_value())
-    {
-        std::println("{}", outputFile.error());
-        return EXIT_FAILURE;
-    }
+    std::println("{} - v{}", APP_NAME, APP_VERSION);
 
     std::println("Exiting...");
 }

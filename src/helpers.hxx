@@ -9,6 +9,7 @@ namespace helpers
 {
 namespace fs = std::filesystem;
 
-auto parse_app_name(std::vector<std::string> args) -> std::string;
-auto parse_arg(std::vector<std::string> args, int position) -> std::expected<fs::path, std::string>;
+auto getAppName(std::vector<std::string> args) -> std::string;
+auto checkArg(std::vector<std::string> args, int position) -> std::expected<fs::path, std::string>;
+auto getPaths(std::vector<std::string> args) -> std::pair<fs::path, fs::path>;
 } // namespace helpers
