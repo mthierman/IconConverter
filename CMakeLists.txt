@@ -2,20 +2,23 @@ cmake_minimum_required(VERSION 3.28)
 
 project(IconConverter VERSION 0.0.1)
 
+include(libs/cmake-modules/common.cmake)
+
 add_executable(IconConverter)
 
 target_sources(
     IconConverter
-    PRIVATE "IconConverter/IconConverter.cxx"
-            "${PROJECT_SOURCE_DIR}/data/glow.manifest"
+    PRIVATE "src/IconConverter.cxx"
+            "${PROJECT_SOURCE_DIR}/data/IconConverter.manifest"
     PRIVATE FILE_SET
             HEADERS
             FILES
-            "IconConverter/IconConverter.hxx"
+            "src/IconConverter.hxx"
     )
 
 target_link_libraries(
     IconConverter
-    PRIVATE glow::glow
-            glow::flags
+    PRIVATE common::features
+            common::definitions
+            common::flags
     )
