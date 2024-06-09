@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
-
-project(IconConverter VERSION 0.0.1)
+project(IconConverter_WIC VERSION 0.0.1)
 
 list(
     APPEND
