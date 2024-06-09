@@ -31,21 +31,31 @@ auto checkArg(std::vector<std::string> args, int position) -> std::expected<fs::
     }
 }
 
-auto getPaths(std::vector<std::string> args) -> std::pair<fs::path, fs::path>
+auto getPaths(int argc, char* argv[]) -> std::pair<fs::path, fs::path>
 {
-    auto inputFile{helpers::checkArg(args, 0)};
-    auto outputFile{helpers::checkArg(args, 1)};
+    std::pair<fs::path, fs::path> paths;
+    std::vector<std::string> args(argv + 1, argc + argv);
 
-    if (!inputFile.has_value())
+    try
     {
-        std::println("{}", inputFile.error());
+        paths.first = args.at(0);
+    }
+    catch (const std::out_of_range& e)
+    {
+        std::println("No input file specified");
         std::exit(EXIT_FAILURE);
     }
 
-    if (!outputFile.has_value())
+    try
     {
-        std::println("{}", outputFile.error());
+        paths.second = args.at(1);
+    }
+    catch (const std::out_of_range& e)
+    {
+        std::println("No output file specified");
         std::exit(EXIT_FAILURE);
     }
+
+    return paths;
 }
 } // namespace helpers
