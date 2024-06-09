@@ -5,10 +5,9 @@
 #include <string>
 #include <vector>
 
-namespace helpers
-{
 namespace fs = std::filesystem;
 
-auto getAppName(std::vector<std::string> args) -> std::string;
+namespace helpers
+{
 auto getPaths(int argc, char* argv[]) -> std::pair<fs::path, fs::path>;
 } // namespace helpers

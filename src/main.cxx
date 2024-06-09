@@ -4,10 +4,8 @@
 
 auto main(int argc, char* argv[]) -> int
 {
-    // auto args{std::vector<std::string>(argv, argc + argv)};
-    // std::println("{} v{}", APP_NAME, APP_VERSION);
-
     auto paths{helpers::getPaths(argc, argv)};
 
-    std::println("Exiting...");
+    std::println("Input file: {}", paths.first.string());
+    std::println("Output file: {}", paths.second.string());
 }

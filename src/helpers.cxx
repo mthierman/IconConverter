@@ -4,13 +4,6 @@
 
 namespace helpers
 {
-auto getAppName(int argc, char* argv[]) -> std::string
-{
-    std::vector<std::string> args(argv, argc + argv);
-
-    return fs::path(args.at(0)).filename().replace_extension("").string();
-}
-
 auto getPaths(int argc, char* argv[]) -> std::pair<fs::path, fs::path>
 {
     std::pair<fs::path, fs::path> paths;
