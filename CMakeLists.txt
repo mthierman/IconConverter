@@ -21,8 +21,9 @@ add_executable(${PROJECT_NAME})
 
 target_sources(
     ${PROJECT_NAME}
-    PRIVATE "src/IconConverter.cxx"
-            "data/IconConverter.manifest"
+    PRIVATE "src/main.cxx"
+            "src/helpers.cxx"
+            "data/main.manifest"
     )
 
 target_link_libraries(
