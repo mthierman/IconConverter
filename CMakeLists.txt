@@ -23,10 +23,6 @@ target_sources(
     ${PROJECT_NAME}
     PRIVATE "src/IconConverter.cxx"
             "data/IconConverter.manifest"
-    PRIVATE FILE_SET
-            HEADERS
-            FILES
-            "src/IconConverter.hxx"
     )
 
 target_link_libraries(
