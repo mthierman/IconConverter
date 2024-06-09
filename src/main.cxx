@@ -43,7 +43,6 @@ auto main(int argc, char* argv[]) -> int
     std::vector<std::vector<char>> bitmaps;
 
     std::vector<int> bitmapSizes{256, 128, 96, 80, 72, 64, 60, 48, 40, 36, 32, 30, 24, 20, 16};
-
     for (auto size : bitmapSizes)
     {
         bitmaps.push_back(helpers::getBitmap(inputFileCanonical, size));
@@ -56,7 +55,6 @@ auto main(int argc, char* argv[]) -> int
         sizes.push_back(static_cast<uint32_t>(bitmap.size()));
     }
 
-    std::ofstream outputStream;
     uint16_t count{static_cast<uint16_t>(bitmapSizes.size())};
     uint32_t offset{6 + (16 * static_cast<uint32_t>(count))};
 
@@ -76,6 +74,7 @@ auto main(int argc, char* argv[]) -> int
         dimensions.push_back(static_cast<uint8_t>(size));
     }
 
+    std::ofstream outputStream;
     outputStream.open(outputFile, std::ios::binary);
 
     helpers::writeHeader(outputStream, count);
