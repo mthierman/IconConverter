@@ -3,6 +3,7 @@
 #include <wincodec.h>
 
 #include <wil/com.h>
+#include <wil/result.h>
 
 #include <print>
 
@@ -38,7 +39,6 @@ auto getPaths(int argc, char* argv[]) -> std::pair<fs::path, fs::path>
 
 auto getBitmap(fs::path inputFileCanonical, int size) -> std::vector<char>
 {
-    wil::com_ptr<IWICImagingFactory> pFactory;
     wil::com_ptr<IWICBitmapDecoder> pDecoder;
     wil::com_ptr<IWICBitmapFrameDecode> pFrameDecode;
     wil::com_ptr<IWICBitmapEncoder> pEncoder;
@@ -48,66 +48,54 @@ auto getBitmap(fs::path inputFileCanonical, int size) -> std::vector<char>
     wil::com_ptr<IWICStream> pStream;
     wil::com_ptr<IPropertyBag2> pPropertyBag;
 
-    if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER,
-                                IID_PPV_ARGS(&pFactory))))
-        return {};
+    auto pFactory{
+        wil::CoCreateInstance<IWICImagingFactory>(CLSID_WICImagingFactory, CLSCTX_INPROC_SERVER)};
 
-    if (FAILED(pFactory->CreateDecoderFromFilename(inputFileCanonical.wstring().c_str(), NULL,
-                                                   GENERIC_READ, WICDecodeMetadataCacheOnDemand,
-                                                   &pDecoder)))
-        return {};
+    THROW_IF_FAILED(pFactory->CreateDecoderFromFilename(inputFileCanonical.wstring().c_str(), NULL,
+                                                        GENERIC_READ,
+                                                        WICDecodeMetadataCacheOnDemand, &pDecoder));
 
-    if (FAILED(pDecoder->GetFrame(0, &pFrameDecode)))
-        return {};
+    THROW_IF_FAILED(pDecoder->GetFrame(0, &pFrameDecode));
 
     wil::unique_hglobal hglobal;
     wil::com_ptr<IStream> istream;
 
-    if (FAILED(::CreateStreamOnHGlobal(hglobal.get(), TRUE, &istream)))
-        return {};
+    THROW_IF_FAILED(::CreateStreamOnHGlobal(hglobal.get(), TRUE, &istream));
 
-    if (FAILED(pFactory->CreateBitmapScaler(&pScaler)))
-        return {};
-    if (FAILED(pScaler->Initialize(pFrameDecode.get(), size, size,
-                                   WICBitmapInterpolationModeHighQualityCubic)))
-        return {};
+    THROW_IF_FAILED(pFactory->CreateBitmapScaler(&pScaler));
+    THROW_IF_FAILED(pScaler->Initialize(pFrameDecode.get(), size, size,
+                                        WICBitmapInterpolationModeHighQualityCubic));
 
     UINT bytesPerPixel{4};
     UINT stride{size * bytesPerPixel};
     UINT bufsize{size * size * bytesPerPixel};
 
     std::vector<BYTE> scaledBuffer(bufsize);
-    if (FAILED(pScaler->CopyPixels(NULL, stride, bufsize, scaledBuffer.data())))
-        return {};
+    THROW_IF_FAILED(pScaler->CopyPixels(NULL, stride, bufsize, scaledBuffer.data()));
 
-    if (FAILED(pFactory->CreateEncoder(GUID_ContainerFormatPng, NULL, &pEncoder)))
-        return {};
-    if (FAILED(pEncoder->Initialize(istream.get(), WICBitmapEncoderNoCache)))
-        return {};
-    if (FAILED(pEncoder->CreateNewFrame(&pFrameEncode, &pPropertyBag)))
-        return {};
+    THROW_IF_FAILED(pFactory->CreateEncoder(GUID_ContainerFormatPng, NULL, &pEncoder));
+    THROW_IF_FAILED(pEncoder->Initialize(istream.get(), WICBitmapEncoderNoCache));
+    THROW_IF_FAILED(pEncoder->CreateNewFrame(&pFrameEncode, &pPropertyBag));
 
-    if (FAILED(pFrameEncode->Initialize(pPropertyBag.get())))
-        return {};
-    if (FAILED(pFrameEncode->SetSize(size, size)))
-        return {};
+    THROW_IF_FAILED(pFrameEncode->Initialize(pPropertyBag.get()));
+    THROW_IF_FAILED(pFrameEncode->SetSize(size, size));
+
     WICPixelFormatGUID pixelFormatDestination{GUID_WICPixelFormat32bppBGRA};
-    if (FAILED(pFrameEncode->SetPixelFormat(&pixelFormatDestination)))
-        return {};
-    if (FAILED(pFrameEncode->WritePixels(size, stride, bufsize, scaledBuffer.data())))
-        return {};
+    THROW_IF_FAILED(pFrameEncode->SetPixelFormat(&pixelFormatDestination));
+    THROW_IF_FAILED(pFrameEncode->WritePixels(size, stride, bufsize, scaledBuffer.data()));
 
-    if (FAILED(pFrameEncode->Commit()))
-        return {};
-    if (FAILED(pEncoder->Commit()))
-        return {};
+    THROW_IF_FAILED(pFrameEncode->Commit());
+    THROW_IF_FAILED(pEncoder->Commit());
 
-    if (FAILED(::GetHGlobalFromStream(istream.get(), &hglobal)))
-        return {};
+    THROW_IF_FAILED(::GetHGlobalFromStream(istream.get(), &hglobal));
+
     auto vecBufsize{::GlobalSize(hglobal.get())};
     auto* ptr{::GlobalLock(hglobal.get())};
+
     if (ptr == nullptr)
-        return {};
+    {
+        throw std::exception("GlobalLock failed");
+    }
 
     std::vector<char> vec;
     vec.resize(vecBufsize);
