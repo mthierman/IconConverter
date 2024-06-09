@@ -19,10 +19,17 @@ include(release_info)
 
 add_executable(${PROJECT_NAME})
 
+file(
+    COPY_FILE
+    "data/main.rc"
+    "${CMAKE_BINARY_DIR}/main.rc"
+    )
+
 target_sources(
     ${PROJECT_NAME}
     PRIVATE "src/main.cxx"
             "src/helpers.cxx"
+            "data/main.rc"
             "data/main.manifest"
     )
 
