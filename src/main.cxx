@@ -8,12 +8,9 @@
 
 auto main(int argc, char* argv[]) -> int
 {
-    auto coUninitialize{wil::CoInitializeEx(COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)};
+    auto coUninitialize{wil::CoInitializeEx()};
 
     auto [inputFile, outputFile]{helpers::getPaths(argc, argv)};
-
-    std::println("Input file: {}", inputFile.string());
-    std::println("Output file: {}", outputFile.string());
 
     if (!fs::exists(inputFile))
     {
@@ -39,6 +36,8 @@ auto main(int argc, char* argv[]) -> int
         std::exit(EXIT_FAILURE);
     }
 
+    std::println("Input file: {}", inputFile.string());
+    std::println("Output file: {}", outputFile.string());
     std::println("Input file canonical: {}", inputFileCanonical.string());
 
     std::vector<std::vector<char>> bitmaps;
