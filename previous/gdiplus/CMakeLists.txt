@@ -11,14 +11,6 @@ include(release_info)
 include(nuget)
 include(packages/wil)
 
-# if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC" ) target_compile_options( common INTERFACE /await:strict
-# /bigobj /diagnostics:caret /EHsc /permissive- /utf-8 /W4 /WX /Zc:__cplusplus )
-
-# target_link_options( common INTERFACE /WX ) endif()
-
-# if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) target_compile_options(common INTERFACE -fcoroutines)
-# endif()
-
 add_executable(${PROJECT_NAME})
 
 target_sources(
