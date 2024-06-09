@@ -1,5 +1,7 @@
 #include "helpers.hxx"
 
+namespace helpers
+{
 auto parse_app_name(std::vector<std::string> args) -> std::string
 {
     return fs::path(args.at(0)).filename().replace_extension("").string();
@@ -26,3 +28,4 @@ auto parse_arg(std::vector<std::string> args, int position) -> std::expected<fs:
         }
     }
 }
+} // namespace helpers
