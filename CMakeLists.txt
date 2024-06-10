@@ -29,7 +29,7 @@ target_sources(
     ${PROJECT_NAME}
     PRIVATE "src/main.cxx"
             "src/helpers.cxx"
-            "data/main.rc"
+            # "data/main.rc"
             "data/main.manifest"
     )
 
